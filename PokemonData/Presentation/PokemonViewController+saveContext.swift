@@ -34,9 +34,10 @@ extension PokemonViewController {
         let entity = NSEntityDescription.entity(forEntityName: "Pokemon", in: managedContext)!
         
         let pokemonObject = NSManagedObject(entity: entity, insertInto: managedContext)
-        
+         
         pokemonObject.setValue(pokemon.name, forKeyPath: "name")
         pokemonObject.setValue(pokemon.number, forKeyPath: "number")
+        pokemonObject.setValue(pokemon.type.rawValue, forKey: "type")
         
         do {
             try managedContext.save()
@@ -60,14 +61,21 @@ extension PokemonViewController {
             
             print("Updating:", pokemon.name)
             pokemonToUpdate.setValue(pokemon.name, forKey: "name")
+            pokemonToUpdate.setValue(pokemon.type.rawValue, forKey: "type")
             
             model.forEach { pokemonModel in
-                let pokemon = PokemonViewModel(name: pokemonModel.name ?? "?", number: Int(pokemonModel.number))
+                let name = pokemonModel.name ?? "?"
+                let number = Int(pokemonModel.number)
+                let type = Type.resolve(pokemonModel.type?.lowercased() ?? "")
+                
+                let pokemon = PokemonViewModel(name: name, number: number, type: type)
                 
                 if let index = items.firstIndex(of: pokemon), items.contains(pokemon) {
                     items[index] = pokemon
                 }
             }
+            
+            try managedContext.save()
             
         } catch let error as NSError {
             print("Could not fetch. \(error), \(error.userInfo)")

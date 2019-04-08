@@ -16,9 +16,9 @@ class NetworkManager: NetworkLayer {
     func getPokemon(completion: @escaping ((Result<[PokemonViewModel], Error>) -> ())) {
         DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(3000)) {
             
-            let pokemon = [PokemonViewModel(name: "Bulbasaur", number: 1),
-                           PokemonViewModel(name: "Ivysaur", number: 2),
-                           PokemonViewModel(name: "Venasaur", number: 3)]
+            let pokemon = [PokemonViewModel(name: "Bulbasaur", number: 1, type: .grass),
+                           PokemonViewModel(name: "Charmander", number: 4, type: .fire),
+                           PokemonViewModel(name: "Squirtle", number: 7, type: .water)]
             completion(.success(pokemon))
             
         }

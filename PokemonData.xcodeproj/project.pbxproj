@@ -65,6 +65,7 @@
 		0B2EA5A7225B824A006DD7A4 /* PokemonViewController+saveContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PokemonViewController+saveContext.swift"; sourceTree = "<group>"; };
 		0B2EA5A9225B863D006DD7A4 /* PokemonViewController+fetchData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PokemonViewController+fetchData.swift"; sourceTree = "<group>"; };
 		0B2EA5AB225BEB47006DD7A4 /* TableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableView.swift; sourceTree = "<group>"; };
+		0B2EA5AD225C0402006DD7A4 /* PokemonData v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "PokemonData v2.xcdatamodel"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -661,9 +662,10 @@
 		0B2EA567225B7155006DD7A4 /* PokemonData.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				0B2EA5AD225C0402006DD7A4 /* PokemonData v2.xcdatamodel */,
 				0B2EA568225B7155006DD7A4 /* PokemonData.xcdatamodel */,
 			);
-			currentVersion = 0B2EA568225B7155006DD7A4 /* PokemonData.xcdatamodel */;
+			currentVersion = 0B2EA5AD225C0402006DD7A4 /* PokemonData v2.xcdatamodel */;
 			path = PokemonData.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

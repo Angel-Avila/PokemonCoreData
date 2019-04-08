@@ -15,7 +15,7 @@ class PokemonCell: GenericCell<PokemonViewModel> {
             guard let label = textLabel, let item = item else { return }
             label.font = UIFont.regular
             label.textColor = .darkGray
-            label.text = "\(item.number) - \(item.name)"
+            label.text = "\(item.number) - \(item.name) | Type: \(item.type.rawValue.capitalized)"
         }
     }
 }
