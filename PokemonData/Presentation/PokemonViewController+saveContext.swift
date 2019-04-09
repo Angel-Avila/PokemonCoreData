@@ -17,6 +17,18 @@ extension PokemonViewController {
         
         deleteOldRecords()
         tableView.reloadData()
+        
+        saveChanges()
+    }
+    
+    func saveChanges() {
+        guard let managedContext = managedContext else { return }
+        
+        do {
+            try managedContext.save()
+        } catch let error as NSError {
+            print("Could not save. \(error), \(error.userInfo)")
+        }
     }
     
     private func savePokemon(_ pokemon: PokemonViewModel) {
@@ -39,14 +51,9 @@ extension PokemonViewController {
         pokemonObject.setValue(pokemon.number, forKeyPath: "number")
         pokemonObject.setValue(pokemon.type.rawValue, forKey: "type")
         
-        do {
-            try managedContext.save()
-            print("Saving:", pokemon.name)
-            items.append(pokemon)
-            fetchedPokemon.append(pokemon)
-        } catch let error as NSError {
-            print("Could not save. \(error), \(error.userInfo)")
-        }
+        items.append(pokemon)
+        fetchedPokemon.append(pokemon)
+        print("Saving:", pokemon.name)
     }
     
     func updatePokemon(_ pokemon: PokemonViewModel) {
@@ -74,9 +81,6 @@ extension PokemonViewController {
                     items[index] = pokemon
                 }
             }
-            
-            try managedContext.save()
-            
         } catch let error as NSError {
             print("Could not fetch. \(error), \(error.userInfo)")
         }
@@ -85,6 +89,7 @@ extension PokemonViewController {
     private func deleteOldRecords() {
         let pokemonToDelete = Set(items).subtracting(fetchedPokemon)
         pokemonToDelete.forEach { deletePokemon($0) }
+        saveChanges()
     }
     
     func deletePokemon(_ pokemon: PokemonViewModel)  {
@@ -99,9 +104,6 @@ extension PokemonViewController {
             
             print("Deleting:", pokemon.name)
             managedContext.delete(pokemonToDelete)
-            
-            try managedContext.save()
-            
         } catch let error as NSError {
             print("Could not fetch. \(error), \(error.userInfo)")
         }

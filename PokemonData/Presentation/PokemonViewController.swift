@@ -37,7 +37,7 @@ class PokemonViewController: GenericTableViewController<PokemonCell, PokemonView
             switch result {
                 
             case .success(let pokemon):
-                 self.saveContext(pokemonArray: pokemon)
+                self.saveContext(pokemonArray: pokemon)
                 break
                 
             case .failure(let error):
@@ -76,6 +76,7 @@ class PokemonViewController: GenericTableViewController<PokemonCell, PokemonView
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if indexPath.row < items.count, editingStyle == .delete {
             deletePokemon(items[indexPath.row])
+            saveChanges()
             items.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .top)
         }
