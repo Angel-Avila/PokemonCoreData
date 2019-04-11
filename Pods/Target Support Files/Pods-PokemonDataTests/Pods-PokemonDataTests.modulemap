@@ -1,0 +1,6 @@
+framework module Pods_PokemonDataTests {
+  umbrella header "Pods-PokemonDataTests-umbrella.h"
+
+  export *
+  module * { export * }
+}

@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreStore
 
 class GenericCell<U>: UITableViewCell {
     var item: U!
@@ -27,10 +28,24 @@ class StringCell: GenericCell<String> {
     }
 }
 
-class GenericTableViewController<T: GenericCell<U>, U>: UITableViewController {
+class GenericTableViewController<T: GenericCell<U>, U: CoreStoreObject>: UITableViewController {
     
-    var items = [U]()
+    
+    var stack: DataStack!
+    
+    var items: ListMonitor<U>!
+    
     let cellId = "id"
+    
+    init(entityId: String) {
+        super.init(style: .plain)
+        
+
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -46,7 +61,7 @@ class GenericTableViewController<T: GenericCell<U>, U>: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return items.count
+        return items.numberOfObjects()
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
