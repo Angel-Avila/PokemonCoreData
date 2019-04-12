@@ -21,23 +21,38 @@ class PokemonCell: GenericCell<Pokemon> {
     }
 }
 
-class PokemonViewController: GenericTableViewController<PokemonCell, Pokemon> {
+class PokemonViewController: UITableViewController {
     
     var presenter: PokemonPresenter!
     var fetchedPokemon = [PokemonViewModel]()
-    var managedContext: NSManagedObjectContext?
+    
+    var stack: DataStack!
+    var items: ListMonitor<Pokemon>!
+    let cellId = "id"
+
+    deinit {
+        items.removeObserver(self)
+    }
     
     init(withPresenter presenter: PokemonPresenter) {
-        super.init(entityId: "Pokemon")
-        
-        
-        
+        super.init(style: .plain)
+        initStack()
+        self.presenter = presenter
+        downloadPokemon()
+        fetchPokemonCache()
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func initStack() {
         stack = DataStack(
             CoreStoreSchema(
                 modelVersion: "1",
                 entities: [Entity<Pokemon>("Pokemon")],
                 versionLock: [
-                    "Pokemon": [0xa6, 0x0, 0x0, 0x0]])
+                    "Pokemon": [0x66847b324e4dfba6, 0x9697d801baf94f4e, 0xdcb90630e0504805, 0xbace52c12f3cb343]])
         )
         
         try! stack.addStorageAndWait(
@@ -47,10 +62,10 @@ class PokemonViewController: GenericTableViewController<PokemonCell, Pokemon> {
         
         items = stack.monitorList(From<Pokemon>().orderBy(.ascending(\.number)))
         
-        self.presenter = presenter
-        
-        getManagedContext()
-        
+        items.addObserver(self)
+    }
+    
+    private func downloadPokemon() {
         presenter.getPokemon { result in
             switch result {
                 
@@ -63,28 +78,26 @@ class PokemonViewController: GenericTableViewController<PokemonCell, Pokemon> {
                 
             }
         }
-        
-        fetchPokemonCache()
-    }
-    
-    private func getManagedContext() {
-        guard let appDelegate =
-            UIApplication.shared.delegate as? AppDelegate else {
-                return
-        }
-        
-        managedContext = appDelegate.persistentContainer.viewContext
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView.frame = view.frame
-        tableView.clipsToBounds = true
+        tableView.register(PokemonCell.self, forCellReuseIdentifier: cellId)
+        tableView.backgroundColor = .white
         view.backgroundColor = .white
+    }
+    
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return items.numberOfObjects()
+    }
+    
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellId) as! PokemonCell
+        
+        let pokemon = items[indexPath]
+        cell.item = pokemon
+        
+        return cell
     }
     
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
@@ -92,13 +105,66 @@ class PokemonViewController: GenericTableViewController<PokemonCell, Pokemon> {
     }
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if indexPath.row < items.numberOfObjects(), editingStyle == .delete {
+        
+        switch editingStyle {
             
-            stack.perform(asynchronous: { transaction in
-                transaction.delete(self.items[indexPath])
-            }, completion: { _ in })
+        case .delete:
+            let pokemon = items[indexPath]
             
-            tableView.deleteRows(at: [indexPath], with: .top)
+            stack.perform(
+                asynchronous: { (transaction) in
+                    
+                    transaction.delete(pokemon)
+            },
+                completion: { _ in }
+            )
+            
+        default:
+            break
         }
+        
+    }
+}
+
+extension PokemonViewController: ListObserver {
+    func listMonitorWillChange(_ monitor: ListMonitor<Pokemon>) {
+        self.tableView.beginUpdates()
+    }
+    
+    func listMonitorDidChange(_ monitor: ListMonitor<Pokemon>) {
+        self.tableView.endUpdates()
+    }
+    
+    func listMonitorWillRefetch(_ monitor: ListMonitor<Pokemon>) {
+        
+    }
+    
+    func listMonitorDidRefetch(_ monitor: ListMonitor<Pokemon>) {
+        self.tableView.reloadData()
+    }
+    
+    
+    // MARK: ListObjectObserver
+    
+    func listMonitor(_ monitor: ListMonitor<Pokemon>, didInsertObject object: Pokemon, toIndexPath indexPath: IndexPath) {
+        self.tableView.insertRows(at: [indexPath], with: .automatic)
+    }
+    
+    func listMonitor(_ monitor: ListMonitor<Pokemon>, didDeleteObject object: Pokemon, fromIndexPath indexPath: IndexPath) {
+        self.tableView.deleteRows(at: [indexPath], with: .automatic)
+    }
+    
+    func listMonitor(_ monitor: ListMonitor<Pokemon>, didUpdateObject object: Pokemon, atIndexPath indexPath: IndexPath) {
+        
+        if let cell = self.tableView.cellForRow(at: indexPath) as? PokemonCell {
+            
+            let pokemon = items[indexPath]
+            cell.item = pokemon
+        }
+    }
+    
+    func listMonitor(_ monitor: ListMonitor<Pokemon>, didMoveObject object: Pokemon, fromIndexPath: IndexPath, toIndexPath: IndexPath) {
+        self.tableView.deleteRows(at: [fromIndexPath], with: .automatic)
+        self.tableView.insertRows(at: [toIndexPath], with: .automatic)
     }
 }

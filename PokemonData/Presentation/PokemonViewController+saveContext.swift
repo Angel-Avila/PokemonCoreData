@@ -23,17 +23,10 @@ extension PokemonViewController {
     }
     
     func saveChanges() {
-        guard let managedContext = managedContext else { return }
-        
-        do {
-            try managedContext.save()
-        } catch let error as NSError {
-            print("Could not save. \(error), \(error.userInfo)")
-        }
+
     }
     
     private func savePokemon(_ pokemon: PokemonViewModel) {
-        guard let managedContext = managedContext else { return }
         
         let prefetchedPokemon = fetchedPokemon.filter { $0 == pokemon }.first
         
@@ -43,14 +36,6 @@ extension PokemonViewController {
             }
             return
         }
-
-        let entity = NSEntityDescription.entity(forEntityName: "Pokemon", in: managedContext)!
-        
-        let pokemonObject = NSManagedObject(entity: entity, insertInto: managedContext)
-         
-        pokemonObject.setValue(pokemon.name, forKeyPath: "name")
-        pokemonObject.setValue(pokemon.number, forKeyPath: "number")
-        pokemonObject.setValue(pokemon.type.rawValue, forKey: "type")
         
         stack.perform(asynchronous: { transaction in
             let poke = transaction.create(Into<Pokemon>())
