@@ -7,6 +7,7 @@ target 'PokemonData' do
 
   # Pods for PokemonData
   pod 'CoreStore'
+  pod 'PinLayout', :inhibit_warnings => true
 
   target 'PokemonDataTests' do
     inherit! :search_paths

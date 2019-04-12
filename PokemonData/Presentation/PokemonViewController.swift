@@ -9,6 +9,7 @@
 import UIKit
 import CoreData
 import CoreStore
+import PinLayout
 
 class PokemonCell: GenericCell<Pokemon> {
     override var item: Pokemon! {
@@ -23,6 +24,8 @@ class PokemonCell: GenericCell<Pokemon> {
 
 class PokemonViewController: UITableViewController {
     
+    // MARK: Vars
+    
     var presenter: PokemonPresenter!
     var fetchedPokemon = [PokemonViewModel]()
     
@@ -30,6 +33,8 @@ class PokemonViewController: UITableViewController {
     var items: ListMonitor<Pokemon>!
     let cellId = "id"
 
+    // MARK: Init & deinit
+    
     deinit {
         items.removeObserver(self)
     }
@@ -62,6 +67,8 @@ class PokemonViewController: UITableViewController {
         
         items = stack.monitorList(From<Pokemon>().orderBy(.ascending(\.number)))
         
+        deleteAll()
+        
         items.addObserver(self)
     }
     
@@ -80,11 +87,21 @@ class PokemonViewController: UITableViewController {
         }
     }
     
+    // MARK: View funcs
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.register(PokemonCell.self, forCellReuseIdentifier: cellId)
         tableView.backgroundColor = .white
         view.backgroundColor = .white
+        
+        tableView.pin.all(view.pin.safeArea)
+    }
+    
+    // MARK: TableViewDataSource
+    
+    override func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -100,8 +117,10 @@ class PokemonViewController: UITableViewController {
         return cell
     }
     
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        return true
+    // MARK: TableViewDelegate
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
     }
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
@@ -122,9 +141,11 @@ class PokemonViewController: UITableViewController {
         default:
             break
         }
-        
     }
+    
 }
+
+// MARK: ListObserver
 
 extension PokemonViewController: ListObserver {
     func listMonitorWillChange(_ monitor: ListMonitor<Pokemon>) {
@@ -142,10 +163,12 @@ extension PokemonViewController: ListObserver {
     func listMonitorDidRefetch(_ monitor: ListMonitor<Pokemon>) {
         self.tableView.reloadData()
     }
-    
-    
-    // MARK: ListObjectObserver
-    
+
+}
+
+// MARK: ListObjectObserver
+
+extension PokemonViewController: ListObjectObserver {
     func listMonitor(_ monitor: ListMonitor<Pokemon>, didInsertObject object: Pokemon, toIndexPath indexPath: IndexPath) {
         self.tableView.insertRows(at: [indexPath], with: .automatic)
     }

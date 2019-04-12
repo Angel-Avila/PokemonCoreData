@@ -12,8 +12,12 @@ import CoreStore
 
 extension PokemonViewController {
     func saveContext(pokemonArray: [PokemonViewModel]) {
+        var count = 500
         pokemonArray.forEach { pokemon in
-            self.savePokemon(pokemon)
+            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(count), execute: {
+                self.savePokemon(pokemon)
+            })
+            count += 500
         }
         
         deleteOldRecords()
@@ -43,11 +47,11 @@ extension PokemonViewController {
             poke.name .= pokemon.name
             poke.number .= pokemon.number
             poke.type .= pokemon.type.rawValue
+            print("Saving:", pokemon.name)
             
         }, completion: { _ in })
         
-        fetchedPokemon.append(pokemon)
-        print("Saving:", pokemon.name)
+        
     }
     
     func updatePokemon(_ pokemon: PokemonViewModel) {
@@ -78,6 +82,15 @@ extension PokemonViewController {
 //        } catch let error as NSError {
 //            print("Could not fetch. \(error), \(error.userInfo)")
 //        }
+    }
+    
+    func deleteAll() {
+        _ = try? stack.perform(
+            synchronous: { (transaction) in
+                
+                try transaction.deleteAll(From<Pokemon>())
+            }
+        )
     }
     
     private func deleteOldRecords() {
