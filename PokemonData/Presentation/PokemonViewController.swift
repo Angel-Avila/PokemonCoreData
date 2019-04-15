@@ -67,8 +67,6 @@ class PokemonViewController: UITableViewController {
         
         items = stack.monitorList(From<Pokemon>().orderBy(.ascending(\.number)))
         
-        deleteAll()
-        
         items.addObserver(self)
     }
     
@@ -77,7 +75,7 @@ class PokemonViewController: UITableViewController {
             switch result {
                 
             case .success(let pokemon):
-                self.saveContext(pokemonArray: pokemon)
+                self.saveContext(fetchedPokemon: pokemon)
                 break
                 
             case .failure(let error):
@@ -142,7 +140,6 @@ class PokemonViewController: UITableViewController {
             break
         }
     }
-    
 }
 
 // MARK: ListObserver

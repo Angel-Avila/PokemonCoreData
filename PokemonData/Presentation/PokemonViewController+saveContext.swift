@@ -11,16 +11,19 @@ import CoreData
 import CoreStore
 
 extension PokemonViewController {
-    func saveContext(pokemonArray: [PokemonViewModel]) {
+    func saveContext(fetchedPokemon: [PokemonViewModel]) {
+        
+        let cachedPokemon = items.objectsInAllSections().map { PokemonViewModel(fromPokemon: $0) }
+        
         var count = 500
-        pokemonArray.forEach { pokemon in
+        fetchedPokemon.forEach { pokemon in
             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(count), execute: {
-                self.savePokemon(pokemon)
+                self.savePokemon(pokemon, cachedPokemon: cachedPokemon)
             })
             count += 500
         }
         
-        deleteOldRecords()
+        deleteOldRecords(fetchedPokemon: fetchedPokemon, cachedPokemon: cachedPokemon)
         tableView.reloadData()
         
         saveChanges()
@@ -30,12 +33,12 @@ extension PokemonViewController {
 
     }
     
-    private func savePokemon(_ pokemon: PokemonViewModel) {
+    private func savePokemon(_ pokemon: PokemonViewModel, cachedPokemon: [PokemonViewModel] = [PokemonViewModel]()) {
         
-        let prefetchedPokemon = fetchedPokemon.filter { $0 == pokemon }.first
+        let pokemonFromCache = cachedPokemon.filter { $0 == pokemon }.first
         
-        if let prefetched = prefetchedPokemon {
-            if prefetched.shouldUpdateFrom(pokemon) {
+        if let cacheMon = pokemonFromCache {
+            if cacheMon.shouldUpdateFrom(pokemon) {
                 updatePokemon(pokemon)
             }
             return
@@ -54,34 +57,17 @@ extension PokemonViewController {
         
     }
     
-    func updatePokemon(_ pokemon: PokemonViewModel) {
-//        guard let managedContext = managedContext else { return }
-        
-//        let fetchRequest = request(fromPokemon: pokemon)
-//
-//        do {
-//            let model = try managedContext.fetch(fetchRequest)
-//
-//            guard let pokemonToUpdate = model.first else { return }
-//
-//            print("Updating:", pokemon.name)
-//            pokemonToUpdate.setValue(pokemon.name, forKey: "name")
-//            pokemonToUpdate.setValue(pokemon.type.rawValue, forKey: "type")
-//
-//            model.forEach { pokemonModel in
-//                let name = pokemonModel.name ?? "?"
-//                let number = Int(pokemonModel.number)
-//                let type = Type.resolve(pokemonModel.type?.lowercased() ?? "")
-//
-//                let pokemon = PokemonViewModel(name: name, number: number, type: type)
-//
-//                if let index = items.firstIndex(of: pokemon), items.contains(pokemon) {
-//                    items[index] = pokemon
-//                }
-//            }
-//        } catch let error as NSError {
-//            print("Could not fetch. \(error), \(error.userInfo)")
-//        }
+    func updatePokemon(_ updatedPokemon: PokemonViewModel) {
+        stack.perform(asynchronous: { transaction in
+            
+            let existingPoke = try transaction.fetchOne(
+                From<Pokemon>()
+                    .where(\.number == updatedPokemon.number))
+            
+            existingPoke?.name .= updatedPokemon.name
+            existingPoke?.type .= updatedPokemon.type.rawValue
+            
+        }, completion: { _ in })
     }
     
     func deleteAll() {
@@ -93,27 +79,23 @@ extension PokemonViewController {
         )
     }
     
-    private func deleteOldRecords() {
-//        let pokemonToDelete = Set(items).subtracting(fetchedPokemon)
-//        pokemonToDelete.forEach { deletePokemon($0) }
-//        saveChanges()
+    private func deleteOldRecords(fetchedPokemon: [PokemonViewModel], cachedPokemon: [PokemonViewModel]) {
+        let pokemonToDelete = Set(cachedPokemon).subtracting(fetchedPokemon)
+        pokemonToDelete.forEach { deletePokemon($0) }
+        saveChanges()
     }
     
     func deletePokemon(_ pokemon: PokemonViewModel)  {
-//        guard let managedContext = managedContext else { return }
-        
-//        let fetchRequest = request(fromPokemon: pokemon)
-//
-//        do {
-//            let model = try managedContext.fetch(fetchRequest)
-//
-//            guard let pokemonToDelete = model.first else { return }
-//
-//            print("Deleting:", pokemon.name)
-//            managedContext.delete(pokemonToDelete)
-//        } catch let error as NSError {
-//            print("Could not fetch. \(error), \(error.userInfo)")
-//        }
+        stack.perform(
+            asynchronous: { (transaction) in
+                let pokemonToDelete = try transaction.fetchOne(
+                    From<Pokemon>()
+                        .where(\.number == pokemon.number))
+                
+                transaction.delete(pokemonToDelete)
+        },
+            completion: { _ in }
+        )
     }
     
 //    private func request(fromPokemon pokemon: PokemonViewModel) -> NSFetchRequest<Pokemon> {

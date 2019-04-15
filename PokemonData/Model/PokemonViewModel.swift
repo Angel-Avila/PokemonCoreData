@@ -13,6 +13,16 @@ struct PokemonViewModel {
     var number: Int
     var type: Type
     
+    init(name: String, number: Int, type: Type) {
+        self.name = name
+        self.number = number
+        self.type = type
+    }
+    
+    init(fromPokemon pokemon: Pokemon) {
+        self.init(name: pokemon.name.value, number: pokemon.number.value, type: Type.resolve(pokemon.type.value))
+    }
+    
     func shouldUpdateFrom(_ pokemon: PokemonViewModel) -> Bool {
         return self.name != pokemon.name || self.type != pokemon.type
     }
@@ -28,63 +38,63 @@ extension PokemonViewModel: Hashable {
 }
 
 enum Type: String, Hashable {
-    case normal = "normal"
-    case fire = "fire"
-    case water = "water"
-    case grass = "grass"
-    case ice = "ice"
-    case electric = "electric"
-    case fighting = "fighting"
-    case poison = "poison"
-    case ground = "ground"
-    case flying = "flying"
-    case psychic = "psychic"
-    case bug = "bug"
-    case rock = "rock"
-    case ghost = "ghost"
-    case dark = "dark"
-    case dragon = "dragon"
-    case steel = "steel"
-    case fairy = "fairy"
+    case Normal
+    case Fire
+    case Water
+    case Grass
+    case Ice
+    case Electric
+    case Fighting
+    case Poison
+    case Ground
+    case Flying
+    case Psychic
+    case Bug
+    case Rock
+    case Ghost
+    case Dark
+    case Dragon
+    case Steel
+    case Fairy
     
     static func resolve(_ type: String) -> Type {
-        switch type {
+        switch type.lowercased() {
         case "fire":
-            return .fire
+            return .Fire
         case "water":
-            return .water
+            return .Water
         case "grass":
-            return .grass
+            return .Grass
         case "ice":
-            return .ice
+            return .Ice
         case "electric":
-            return .electric
+            return .Electric
         case "fighting":
-            return .fighting
+            return .Fighting
         case "poison":
-            return .poison
+            return .Poison
         case "ground":
-            return .ground
+            return .Ground
         case "flying":
-            return .flying
+            return .Flying
         case "psychic":
-            return .psychic
+            return .Psychic
         case "bug":
-            return .bug
+            return .Bug
         case "rock":
-            return .rock
+            return .Rock
         case "ghost":
-            return .ghost
+            return .Ghost
         case "dark":
-            return .dark
+            return .Dark
         case "dragon":
-            return .dragon
+            return .Dragon
         case "steel":
-            return .steel
+            return .Steel
         case "fairy":
-            return .fairy
+            return .Fairy
         default:
-            return .normal
+            return .Normal
         }
     }
 }
